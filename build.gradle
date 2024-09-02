@@ -52,21 +52,33 @@ sourceSets {
     }
 }
 
-task run (type: JavaExec, dependsOn: 'classes') {
+task runEvalScalability (type: JavaExec, dependsOn: 'classes') {
     group       ' JaCaMo'
     description 'runs the JaCaMo application'
     doFirst {
         mkdir 'log'
     }
     mainClass = 'jacamo.infra.JaCaMoLauncher'
-    args 'main.jcm'
+    args 'eval_scalability_0.jcm'
+    // jvmArgs '-Xss15m'
+    classpath sourceSets.main.runtimeClasspath
+}
+
+task runEvalScalabilityAllPlans (type: JavaExec, dependsOn: 'classes') {
+    group       ' JaCaMo'
+    description 'runs the JaCaMo application'
+    doFirst {
+        mkdir 'log'
+    }
+    mainClass = 'jacamo.infra.JaCaMoLauncher'
+    args 'eval_scalability_1.jcm'
     // jvmArgs '-Xss15m'
     classpath sourceSets.main.runtimeClasspath
 }
 
 task buildJCMDeps (type: JavaExec, dependsOn: 'classes') {
     mainClass = 'jacamo.infra.RunJaCaMoProject'
-    args = ['main.jcm', '--deps']
+    args = ['eval_scalability_0.jcm', '--deps']
     classpath sourceSets.main.runtimeClasspath
 }
 
@@ -122,8 +134,8 @@ task uberJar(type: Jar, dependsOn: 'classes') {
 
     doFirst {
         copy {
-            from 'main.jcm'
-            rename 'main.jcm','default.jcm'
+            from 'eval_scalability_0.jcm'
+            rename 'eval_scalability_0.jcm','default.jcm'
             into project.buildDir.absolutePath + '/jcm'
         }
     }

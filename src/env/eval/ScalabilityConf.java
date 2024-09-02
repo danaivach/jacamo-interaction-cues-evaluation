@@ -48,6 +48,7 @@ public class ScalabilityConf extends Artifact {
   private String envURL;
   private String workspaceName;
   private String artifactName;
+  private int planNum;
   private int signifierNum;
   private int maxSignifierNum;
   private boolean logTime;
@@ -58,10 +59,11 @@ public class ScalabilityConf extends Artifact {
     return str.replace(ns.getName(), ns.getPrefix() + ":");
   }
 
-  public void init(String url, String workspaceName, String artifactName, int signifierNum, int maxSignifierNum, boolean logTime) {
+  public void init(String url, String workspaceName, String artifactName, int planNum, int signifierNum, int maxSignifierNum, boolean logTime) {
     this.envURL = url;
-    this.artifactName = artifactName;
     this.workspaceName = workspaceName;
+    this.artifactName = artifactName;
+    this.planNum = planNum;
     this.signifierNum = signifierNum;
     this.maxSignifierNum = maxSignifierNum;
     this.logTime = logTime;
@@ -176,21 +178,36 @@ public class ScalabilityConf extends Artifact {
                 .map(type -> getCurie(type, EX_NS))
                 .collect(Collectors.toSet()).toArray();
 
-        String artifactId = "[artifact_name("
-                + this.artifactName + "), wsp("
-                + this.workspaceName + ")]";
+        List<String> knownPlans = new ArrayList<>();
 
-        String knownPlan = "@test_goal +!test_goal : ability(Ability) " +
-                "& signifier([\"" + getCurie(knownActionType, EX_NS) + "\"], [Ability])" +
-                "<- invokeAction(\"" + getCurie(knownActionType, EX_NS) + "\")" + artifactId + ". ";
+        if (planNum == 0) {
+          knownPlans.add(this.getPlan(knownActionType));
+        } else if (planNum == 1 && signifierNum == 1) {
+          knownPlans = this.getAllPlans();
+        }
 
         if (this.getObsProperty("agent_metadata") == null) {
-          this.defineObsProperty("agent_metadata", knownPlan, prefixedAbilityTypes[0]);
+          this.defineObsProperty("agent_metadata", knownPlans.toArray(), prefixedAbilityTypes[0], planNum);
         } else {
-          this.getObsProperty("agent_metadata").updateValues(knownPlan, prefixedAbilityTypes[0]);
+          this.getObsProperty("agent_metadata").updateValues(knownPlans.toArray(), prefixedAbilityTypes[0], planNum);
         }
       }
     }
+  }
+
+  private String getPlan(String actionType) {
+
+    String planAnnot = "[artifact_name("
+            + this.artifactName + "), wsp("
+            + this.workspaceName + ")]";
+
+    String planActionType = getCurie(actionType, EX_NS);
+
+    String planLabel = planActionType.substring(planActionType.indexOf(":") + 1).toLowerCase();
+
+    return "@test_goal_" + planLabel + " +!test_goal : ability(Ability) " +
+            "& signifier([\"" + planActionType + "\"], [Ability])" +
+            "<- invokeAction(\"" + planActionType + "\")" + planAnnot + ". ";
   }
 
   private void initAllSignifiers() {
@@ -221,6 +238,16 @@ public class ScalabilityConf extends Artifact {
         this.allSignifiers.add(sig);
       }
     }
+  }
+
+  private List<String> getAllPlans() {
+    List<String> knownPlans = new ArrayList<>();
+    for (Signifier signifier : this.allSignifiers) {
+      Iterator<String> actionTypesIt = signifier.getActionSpecification().getRequiredSemanticTypes().iterator();
+      String knownActionType = actionTypesIt.hasNext() ? actionTypesIt.next() : null;
+      knownPlans.add(this.getPlan(knownActionType));
+    }
+    return knownPlans;
   }
 
 }

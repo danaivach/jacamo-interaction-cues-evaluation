@@ -17,16 +17,22 @@ import java.nio.file.Paths;
 
 public class TimeLogger extends Artifact {
 
-  private static final String FILE_NAME = "signifier_log.xlsx";
   private Workbook workbook;
   private Sheet sheet;
   private long startTime;
   private int signifiersNum;
+  private String evalType;
+  private int evalMode;
+  private String fileName;
 
-  public void init(int signifiersNum) {
+  public void init(int signifiersNum, String evalType, int evalMode) {
     this.signifiersNum = 1;
-    if (Files.exists(Paths.get(FILE_NAME))) {
-      try (FileInputStream fis = new FileInputStream(FILE_NAME)) {
+    this.evalType = evalType;
+    this.evalMode = evalMode;
+    this.fileName = evalType + "_" + evalMode + ".xlsx";
+
+    if (Files.exists(Paths.get(fileName))) {
+      try (FileInputStream fis = new FileInputStream(fileName)) {
         workbook = new XSSFWorkbook(fis);
         sheet = workbook.getSheet("Log");
       } catch (IOException e) {
@@ -82,7 +88,7 @@ public class TimeLogger extends Artifact {
     cell2.setCellValue(elapsedTimeInMillis);
 
     // Write the output to the Excel file
-    try (FileOutputStream fos = new FileOutputStream(FILE_NAME)) {
+    try (FileOutputStream fos = new FileOutputStream(fileName)) {
       workbook.write(fos);
     } catch (IOException e) {
       e.printStackTrace();

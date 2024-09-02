@@ -35,18 +35,18 @@ env_name("61").
 
 @testing[atomic]
 +exposureState("done")[artifact_name(test)] : true <-
-  startTimer;
-  !test_goal;
-  stopTimerAndLog;
-  increaseSignifiers.
+    startTimer;
+    !test_goal;
+    stopTimerAndLog;
+    increaseSignifiers.
 
 @test_goal
 +!test_goal : true <- .print("Initial plan").
 
 @web_id_initialization
 +!set_up_web_id(WebId) : .my_name(AgentName) <-
- .concat("https://wiser-solid-xi.interactions.ics.unisg.ch/", AgentName, "/profile/card#me", WebId);
- +web_id(WebId).
+    .concat("https://wiser-solid-xi.interactions.ics.unisg.ch/", AgentName, "/profile/card#me", WebId);
+    +web_id(WebId).
 
 { include("inc/evaluation_agent.asl") }
 { include("inc/hypermedia.asl") }
