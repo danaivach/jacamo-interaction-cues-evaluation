@@ -11,12 +11,6 @@ apply from: '.jcm-deps.gradle' // this file contains dependencies declared in th
 version '1.0'
 group   'org.jacamo'
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
-
 repositories {
     maven { url "https://raw.githubusercontent.com/jacamo-lang/mvn-repo/master" }
     maven { url "https://repo.gradle.org/gradle/libs-releases" }
@@ -30,6 +24,17 @@ repositories {
 
 dependencies {
     implementation('org.jacamo:jacamo:1.2')
+    implementation('com.github.danaivach:jacamo-hypermedia:hmas-signifiers-SNAPSHOT')
+    implementation('com.github.danaivach:hmas-java:main-SNAPSHOT')
+    implementation('org.apache.httpcomponents.client5:httpclient5-fluent:5.0')
+    implementation('org.apache.httpcomponents.core5:httpcore5:5.2.5')
+    implementation('org.eclipse.jetty.aggregate:jetty-all:9.0.0.RC2')
+    implementation('org.eclipse.rdf4j:rdf4j-model:5.0.2')
+    implementation('org.eclipse.rdf4j:rdf4j-rio-api:5.0.2')
+    implementation('org.eclipse.rdf4j:rdf4j-rio-turtle:5.0.2')
+    implementation('org.apache.poi:poi:5.3.0')
+    implementation('org.apache.poi:poi-ooxml:5.3.0')
+
 }
 
 sourceSets {
@@ -188,7 +193,6 @@ task testJaCaMo {
         }
     }
 }
-tasks.test.finalizedBy testJaCaMo
 
 clean {
     delete 'bin'
