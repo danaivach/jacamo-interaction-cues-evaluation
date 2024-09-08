@@ -2,7 +2,7 @@
    Templete JaCaMo Project
 */
 
-defaultTasks 'run'
+defaultTasks 'runEvalScalability'
 
 apply plugin: 'java'
 apply plugin: 'maven-publish'
@@ -23,7 +23,7 @@ repositories {
 }
 
 dependencies {
-    implementation('org.jacamo:jacamo:1.2')
+    implementation('com.github.danaivach:jacamo:refactor-event-filters-SNAPSHOT')
     implementation('com.github.danaivach:jacamo-hypermedia:hmas-signifiers-SNAPSHOT')
     implementation('com.github.danaivach:hmas-java:main-SNAPSHOT')
     implementation('org.apache.httpcomponents.client5:httpclient5-fluent:5.0')
@@ -58,27 +58,24 @@ task runEvalScalability (type: JavaExec, dependsOn: 'classes') {
     doFirst {
         mkdir 'log'
     }
-    mainClass = 'jacamo.infra.JaCaMoLauncher'
-    args 'eval_scalability_0.jcm'
-    // jvmArgs '-Xss15m'
-    classpath sourceSets.main.runtimeClasspath
-}
+    def sem = project.hasProperty('sem') ? project.sem.toInteger() : 0
+    def dynamicPlans = project.hasProperty('dynamicPlans') ? project.dynamicPlans.toInteger() : 0
+    def dynamicAbilities = project.hasProperty('dynamicAbilities') ? project.dynamicAbilities.toInteger() : 0
 
-task runEvalScalabilityAllPlans (type: JavaExec, dependsOn: 'classes') {
-    group       ' JaCaMo'
-    description 'runs the JaCaMo application'
-    doFirst {
-        mkdir 'log'
-    }
     mainClass = 'jacamo.infra.JaCaMoLauncher'
-    args 'eval_scalability_1.jcm'
+
+    if ([sem, dynamicPlans, dynamicAbilities].every { it in [0, 1] }) {
+        args "eval_scalability_${sem}${dynamicPlans}${dynamicAbilities}.jcm"
+    } else {
+        throw new GradleException("Invalid combination of dynamicPlans and dynamicAbilities")
+    }
     // jvmArgs '-Xss15m'
     classpath sourceSets.main.runtimeClasspath
 }
 
 task buildJCMDeps (type: JavaExec, dependsOn: 'classes') {
     mainClass = 'jacamo.infra.RunJaCaMoProject'
-    args = ['eval_scalability_0.jcm', '--deps']
+    args = ['eval_scalability_000.jcm', '--deps']
     classpath sourceSets.main.runtimeClasspath
 }
 
@@ -134,8 +131,8 @@ task uberJar(type: Jar, dependsOn: 'classes') {
 
     doFirst {
         copy {
-            from 'eval_scalability_0.jcm'
-            rename 'eval_scalability_0.jcm','default.jcm'
+            from 'eval_scalability_000.jcm'
+            rename 'eval_scalability_000.jcm','default.jcm'
             into project.buildDir.absolutePath + '/jcm'
         }
     }

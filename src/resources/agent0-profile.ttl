@@ -1,0 +1,17 @@
+@prefix jacamo: <https://purl.org/hmas/jacamo/> .
+@prefix ex: <https://example.org/> .
+@prefix hctl: <https://www.w3.org/2019/wot/hypermedia#> .
+@prefix htv: <http://www.w3.org/2011/http#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xs: <http://www.w3.org/2001/XMLSchema#> .
+@prefix hmas: <https://purl.org/hmas/> .
+
+<https://wiser-solid-xi.interactions.ics.unisg.ch/agent0/profile/card> a hmas:ResourceProfile;
+  hmas:isProfileOf <https://wiser-solid-xi.interactions.ics.unisg.ch/agent0/profile/card#me> .
+
+<https://wiser-solid-xi.interactions.ics.unisg.ch/agent0/profile/card#me> a hmas:Agent;
+  hmas:hasAbility [ a hmas:Ability, ex:Pyromancy0
+    ];
+  jacamo:hasBody <http://172.27.52.55:8080/workspaces/61/artifacts/agent0#artifact> .

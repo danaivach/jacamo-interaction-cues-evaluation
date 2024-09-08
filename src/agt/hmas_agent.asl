@@ -21,17 +21,19 @@ env_name("61").
     createWorkspace(EnvName);
     !joinWorkspace(EnvName,_);
 
-    // Start evaluation
-    !start_evaluation(EnvUrl, EnvName);
-
     // Set WebId
     !set_up_web_id(WebId);
+
+    // Start evaluation
+    !start_evaluation(EnvUrl, EnvName);
 
     // Load environment 61
     makeArtifact("notification-server", "org.hyperagents.jacamo.artifacts.yggdrasil.NotificationServerArtifact", ["localhost", 8081], NotifServerId);
     setOperatorWebId(WebId)[artifact_id(NotifServerId)];
     start;
     !load_environment(EnvUrl, "61").
+
++setupDone : true <- .print("increasing sigs"); increaseSignifiers.
 
 @testing[atomic]
 +exposureState("done")[artifact_name(test)] : true <-

@@ -21,15 +21,11 @@ public class TimeLogger extends Artifact {
   private Sheet sheet;
   private long startTime;
   private int signifiersNum;
-  private String evalType;
-  private int evalMode;
   private String fileName;
 
-  public void init(int signifiersNum, String evalType, int evalMode) {
-    this.signifiersNum = 1;
-    this.evalType = evalType;
-    this.evalMode = evalMode;
-    this.fileName = evalType + "_" + evalMode + ".xlsx";
+  public void init(int signifiersNum, String fileName) {
+    this.signifiersNum = signifiersNum;
+    this.fileName = fileName + ".xlsx";
 
     if (Files.exists(Paths.get(fileName))) {
       try (FileInputStream fis = new FileInputStream(fileName)) {
@@ -45,7 +41,7 @@ public class TimeLogger extends Artifact {
       Cell headerCell1 = headerRow.createCell(0);
       headerCell1.setCellValue("signifiers_num");
       Cell headerCell2 = headerRow.createCell(1);
-      headerCell2.setCellValue("time_ms");
+      headerCell2.setCellValue("agent_time_ms");
     }
   }
 
@@ -60,6 +56,7 @@ public class TimeLogger extends Artifact {
   @LINK
   @OPERATION
   public void startTimer() {
+    //System.out.println("starting reasoning: " + this.signifiersNum);
     startTime = System.currentTimeMillis();
   }
 
@@ -70,28 +67,31 @@ public class TimeLogger extends Artifact {
   public void stopTimerAndLog() {
     long endTime = System.currentTimeMillis();
     long elapsedTimeInMillis = endTime - startTime;
-
-    logTime(elapsedTimeInMillis);
+    log(elapsedTimeInMillis);
+    // System.out.println("logging reasoning: " + this.signifiersNum);
   }
 
   // Method to log time in the Excel sheet
-  private void logTime(long elapsedTimeInMillis) {
-    // Find the next empty row
-    int rowNum = sheet.getLastRowNum() + 1;
-    Row row = sheet.createRow(rowNum);
+  private void log(long elapsedTimeInMillis) {
 
-    // Write data to the row
-    Cell cell1 = row.createCell(0);
-    cell1.setCellValue(signifiersNum);
+    if (this.signifiersNum > 0) {
+      // Find the next empty row
 
-    Cell cell2 = row.createCell(1);
-    cell2.setCellValue(elapsedTimeInMillis);
+      Row row = sheet.createRow(this.signifiersNum);
 
-    // Write the output to the Excel file
-    try (FileOutputStream fos = new FileOutputStream(fileName)) {
-      workbook.write(fos);
-    } catch (IOException e) {
-      e.printStackTrace();
+      // Write data to the row
+      Cell cell1 = row.createCell(0);
+      cell1.setCellValue(this.signifiersNum);
+
+      Cell cell2 = row.createCell(1);
+      cell2.setCellValue(elapsedTimeInMillis);
+
+      // Write the output to the Excel file
+      try (FileOutputStream fos = new FileOutputStream(fileName)) {
+        workbook.write(fos);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
   }
 }

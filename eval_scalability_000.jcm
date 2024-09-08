@@ -12,7 +12,8 @@
 mas main {
 
     agent agent0 : hmas_agent.asl {
-        beliefs: evaluation(scalability, 0, 0, 1000)
+        // EvalType, DynamicPlanLib, MinSigNum, MaxSigNum
+        beliefs: evaluation(scalability, false, false, false, 0, 1000)
     }
 
 
