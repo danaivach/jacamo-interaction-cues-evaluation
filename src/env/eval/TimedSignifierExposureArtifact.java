@@ -15,12 +15,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TimedSignifierExposureArtifact extends SignifierExposureArtifact {
 
   private  String fileName;
   private Workbook workbook;
   private Sheet sheet;
+  public Map<Integer, Long> exposureTimes;
   int counter;
 
   public void init() {
@@ -28,6 +31,7 @@ public class TimedSignifierExposureArtifact extends SignifierExposureArtifact {
 
     this.counter = 0;
     this.fileName =  "sem_time.xlsx";
+    this.exposureTimes = new HashMap<Integer, Long>();
 
     if (Files.exists(Paths.get(fileName))) {
       try (FileInputStream fis = new FileInputStream(fileName)) {
@@ -57,7 +61,41 @@ public class TimedSignifierExposureArtifact extends SignifierExposureArtifact {
   }
 
   // Method to log time in the Excel sheet
-  private void log(long elapsedTimeInMillis) {
+  private void logInMap(long elapsedTimeInMillis) {
+
+    this.exposureTimes.put(this.counter, elapsedTimeInMillis);
+
+    if (this.counter == 2000) {
+      // Start writing map contents to the sheet
+      int rowNum = sheet.getLastRowNum() + 1; // Find the next empty row
+
+      // Iterate through the map and write key-value pairs to the sheet
+      for (Map.Entry<Integer, Long> entry : this.exposureTimes.entrySet()) {
+        Row row = sheet.createRow(rowNum++); // Create a new row and increment rowNum
+
+        // Create cell for the key (in column 0)
+        Cell cell1 = row.createCell(0);
+        cell1.setCellValue(entry.getKey());
+
+        // Create cell for the value (in column 1)
+        Cell cell2 = row.createCell(1);
+        cell2.setCellValue(entry.getValue());
+      }
+
+      // Write the output to the Excel file
+      try (FileOutputStream fos = new FileOutputStream(fileName)) {
+        workbook.write(fos);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+
+    // Increment the counter
+    this.counter++;
+  }
+
+  // Method to log time in the Excel sheet
+  private void logInFile(long elapsedTimeInMillis) {
 
     if (this.counter > 0) {
       // Find the next empty row
@@ -113,10 +151,10 @@ public class TimedSignifierExposureArtifact extends SignifierExposureArtifact {
 
     @Override
     public boolean select(ArtifactObsEvent ev) {
-      //long startTime = System.currentTimeMillis();
+      long startTime = System.currentTimeMillis();
       boolean selected = super.select(ev);
-      //long endTime = System.currentTimeMillis();
-      //((TimedSignifierExposureArtifact) artifact).log(endTime-startTime);
+      long endTime = System.currentTimeMillis();
+      ((TimedSignifierExposureArtifact) artifact).logInMap(endTime-startTime);
       return selected;
     }
   }

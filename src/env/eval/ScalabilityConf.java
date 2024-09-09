@@ -208,7 +208,7 @@ public class ScalabilityConf extends Artifact {
     String planLabel = planActionType.substring(planActionType.indexOf(":") + 1).toLowerCase();
 
     return "@test_goal_" + planLabel + " +!test_goal : ability(Ability) " +
-            "& signifier([\"" + planActionType + "\"], [Ability])" +
+            "& signifier([\"" + planActionType + "\"], [Ability], _)" +
             "<- invokeAction(\"" + planActionType + "\")" + planAnnot + ". ";
   }
 
