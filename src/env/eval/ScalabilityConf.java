@@ -1,10 +1,13 @@
-package eval;
+package org.hyperagents.jacamo.artifacts.eval;
 
 import cartago.*;
 import ch.unisg.ics.interactions.hmas.interaction.io.ResourceProfileGraphReader;
 import ch.unisg.ics.interactions.hmas.interaction.io.ResourceProfileGraphWriter;
 import ch.unisg.ics.interactions.hmas.interaction.signifiers.*;
 import ch.unisg.ics.interactions.hmas.interaction.vocabularies.INTERACTION;
+import ch.unisg.ics.interactions.wot.td.ThingDescription;
+import ch.unisg.ics.interactions.wot.td.affordances.ActionAffordance;
+import ch.unisg.ics.interactions.wot.td.io.TDGraphWriter;
 import org.apache.hc.core5.http.HttpStatus;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
@@ -23,63 +26,80 @@ import java.util.stream.Collectors;
 )
 public class ScalabilityConf extends Artifact {
 
-  private static final String[] ACTIONS = {
+  protected static final String[] ACTIONS = {
           "Ignite", "Drench", "Gust", "Stabilize", "Charge", "Freeze", "Forge", "Enshroud", "Illuminate", "Disperse"
   };
 
-  private static final String[] BASE_ABILITIES = {
+  protected static final String[] BASE_ABILITIES = {
           "Pyromancy", "Hydromancy", "Aeromancy", "Geomancy", "Electromancy",
           "Cryomancy", "Metallurgy", "Shadowcraft", "Lumomancy", "Voidweaving"
   };
 
-  private static final String[] SUPPORTING_ITEMS = {
+  protected static final String[] SUPPORTING_ITEMS = {
           "Glyph", "Rune", "Mark", "Sigil", "Emblem", "Seal", "Insignia", "Crest", "Symbol", "Badge"
   };
 
-  private static final Namespace EX_NS = new SimpleNamespace("ex", "https://example.org/");
-  private static final String WEB_ID = "https://example.org/env-manager";
+  protected static final Namespace MANU_ΝS = new SimpleNamespace("manu", "https://ci.mines-stetienne.fr/kg/ontology#");
+  protected static final Namespace EX_NS = new SimpleNamespace("ex", "https://example.org/");
+  protected static final String WEB_ID = "https://example.org/env-manager";
 
-  private ResourceProfile.Builder testProfileBuilder;
-  private List<Signifier> allSignifiers;
-  private HashMap<Signifier,String> allPlans;
+  protected ResourceProfile.Builder testHMASProfileBuilder;
+  protected ThingDescription.Builder testTDBuilder;
+  protected List<Signifier> allSignifiers;
+  protected List<ActionAffordance> allAffordances;
+  protected HashMap<Signifier,String> allHMASPlans;
+  protected HashMap<ActionAffordance, String> allTDPlans;
 
-  private String envURL;
-  private String workspaceName;
-  private String artifactName;
-  private boolean dynamicPlanLib;
-  private boolean dynamicAbilities;
-  private int signifierNum;
-  private int maxSignifierNum;
-  private boolean logTime;
+  protected String envURL;
+  protected String workspaceName;
+  protected String artifactName;
+  protected String vocabulary;
+  protected boolean dynamicResolution;
+  protected boolean dynamicPlanLib;
+  protected boolean dynamicAbilities;
+  protected int signifierNum;
+  protected int maxSignifierNum;
+  protected boolean logTime;
 
-  private final Random random = new Random();
+  protected final Random random = new Random();
 
-  private static String getCurie(String str, Namespace ns) {
+  protected static String getCurie(String str, Namespace ns) {
     return str.replace(ns.getName(), ns.getPrefix() + ":");
   }
 
-  public void init(String url, String workspaceName, String artifactName, boolean dynamicPlanLib, boolean dynamicAbilities, int signifierNum, int maxSignifierNum, boolean logTime) {
+  public void init(String url, String workspaceName, String artifactName, String vocabulary, boolean dynamicResolution,
+                   boolean dynamicPlanLib, boolean dynamicAbilities, int signifierNum, int maxSignifierNum, boolean logTime) {
     this.envURL = url;
     this.workspaceName = workspaceName;
     this.artifactName = artifactName;
+    this.dynamicResolution = dynamicResolution;
     this.dynamicPlanLib = dynamicPlanLib;
     this.dynamicAbilities = dynamicAbilities;
     this.signifierNum = signifierNum;
     this.maxSignifierNum = maxSignifierNum;
     this.logTime = logTime;
 
-    this.testProfileBuilder = new ResourceProfile.Builder(new ch.unisg.ics.interactions.hmas.core.hostables.Artifact
-            .Builder()
-            .setIRIAsString(this.envURL + "/artifacts/" + this.artifactName + "/#artifact")
-            .addSemanticType(EX_NS.getName() + "SpellBook")
-            .build())
-            .setIRIAsString(this.envURL + "/artifacts/" + this.artifactName + "/");
+    this.testHMASProfileBuilder = this.getHMASProfileBaseBuilder();
+    this.testTDBuilder = this.getTDBaseBuilder();
 
-    this.initAllSignifiers();
+    if ("hmas".equals(vocabulary) || "https://purl.org/hmas/".equals(vocabulary)) {
+      this.vocabulary = "hmas";
+      this.initAllSignifiers();
+    } else if ("td".equals(vocabulary) || "https://www.w3.org/2019/wot/td#".equals(vocabulary)) {
+      this.vocabulary = "td";
+      this.initAllAffordances();
+    } else {
+      failed("Unknown vocabulary. Please, select either \"hmas\" for testing with hMAS Resource Profiles," +
+              "or \"td\" for testing with W3C Web of Things Thing Descriptions.");
+    }
 
     this.updateAgentSituation();
     this.publishEmptyProfile();
     this.updatePublishedProfile(this.getUpdatedProfile());
+  }
+
+  public void init(String url, String workspaceName, String artifactName, boolean dynamicResolution, int signifierNum, int maxSignifierNum, boolean logTime) {
+    this.init(url, workspaceName, artifactName, "hmas", dynamicResolution, false, false, signifierNum, maxSignifierNum, logTime);
   }
 
   @OPERATION
@@ -89,7 +109,7 @@ public class ScalabilityConf extends Artifact {
       this.updateAgentSituation();
       try {
         if (logTime) {
-          execLinkedOp("conf-out", "setSignifiersNum", signifierNum);
+          execLinkedOp("conf-out", "setRound", signifierNum);
         }
       } catch (OperationException e) {
         throw new RuntimeException(e);
@@ -98,40 +118,66 @@ public class ScalabilityConf extends Artifact {
     }
   }
 
+  protected ResourceProfile.Builder getHMASProfileBaseBuilder() {
+    String artifactURI = this.envURL + "/artifacts/" + this.artifactName ;
+    return new ResourceProfile.Builder(new ch.unisg.ics.interactions.hmas.core.hostables.Artifact
+            .Builder()
+            .setIRIAsString(artifactURI + "/#artifact")
+            .addSemanticType(EX_NS.getName() + "SpellBook")
+            .build())
+            .setIRIAsString(this.envURL + "/artifacts/" + this.artifactName + "/");
+  }
+
+  protected ThingDescription.Builder getTDBaseBuilder() {
+    String artifactURI = this.envURL + "/artifacts/" + this.artifactName ;
+    return new ThingDescription.Builder(this.artifactName)
+            .addThingURI(artifactURI)
+            .addSemanticType(EX_NS.getName() + "SpellBook");
+  }
+
   private void publishEmptyProfile() {
-    String profileStr = new ResourceProfileGraphWriter(testProfileBuilder.build()).write();
-    HttpClient client = new HttpClient();
+    String profileStr = null;
 
-    try {
-      client.start();
+    if ("hmas".equals(this.vocabulary)) {
+      profileStr = new ResourceProfileGraphWriter(testHMASProfileBuilder.build()).write();
+    } else if ("td".equals(this.vocabulary)) {
+      profileStr = new TDGraphWriter(testTDBuilder.build()).write();
+    }
 
-      ContentResponse response = client.POST(this.envURL + "/artifacts/")
-              .content(new StringContentProvider(profileStr), "text/turtle")
-              .header("X-Agent-WebID", WEB_ID)
-              .header("Slug", this.artifactName).send();
+    if (profileStr != null) {
+      HttpClient client = new HttpClient();
 
-      if (response.getStatus() != HttpStatus.SC_CREATED) {
-        log("Request failed: " + response.getStatus());
+      try {
+        client.start();
+
+        ContentResponse response = client.POST(this.envURL + "/artifacts/")
+                .content(new StringContentProvider(profileStr), "text/turtle")
+                .header("X-Agent-WebID", WEB_ID)
+                .header("Slug", this.artifactName).send();
+
+        if (response.getStatus() != HttpStatus.SC_CREATED) {
+          log("Request failed: " + response.getStatus());
+        }
+
+        ResourceProfile profile = ResourceProfileGraphReader.readFromURL(this.envURL + "/artifacts/" + this.artifactName);
+        this.testHMASProfileBuilder.exposeSignifiers(profile.getExposedSignifiers());
+
+        client.stop();
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-
-      ResourceProfile profile = ResourceProfileGraphReader.readFromURL(this.envURL + "/artifacts/" + this.artifactName);
-      this.testProfileBuilder.exposeSignifiers(profile.getExposedSignifiers());
-
-      client.stop();
-    } catch (Exception e) {
-      e.printStackTrace();
     }
   }
 
-  private void updatePublishedProfile(ResourceProfile profile) {
-    String profileStr = new ResourceProfileGraphWriter(profile).write();
+  private void updatePublishedProfile(String profile) {
+
     HttpClient client = new HttpClient();
     try {
       client.start();
 
       ContentResponse response = client.newRequest(this.envURL + "/artifacts/" + this.artifactName)
               .method(HttpMethod.PUT)
-              .content(new StringContentProvider(profileStr), "text/turtle")
+              .content(new StringContentProvider(profile), "text/turtle")
               .header("X-Agent-WebID", WEB_ID)
               .send();
 
@@ -145,14 +191,32 @@ public class ScalabilityConf extends Artifact {
     }
   }
 
-  private ResourceProfile getUpdatedProfile() {
+  private String getUpdatedProfile() {
+    // Check if signifierNum is greater than 0
     if (signifierNum > 0) {
-      return this.testProfileBuilder
-              .exposeSignifier(this.allSignifiers.get(signifierNum-1))
-              .build();
+      if ("hmas".equals(this.vocabulary)) {
+        ResourceProfile profile = this.testHMASProfileBuilder
+                .exposeSignifier(this.allSignifiers.get(signifierNum - 1))
+                .build();
+        return new ResourceProfileGraphWriter(profile).write();
+      } else if ("td".equals(this.vocabulary)) {
+        ThingDescription td = this.testTDBuilder
+                .addAction(this.allAffordances.get(signifierNum - 1))
+                .build();
+        return new TDGraphWriter(td).write();
+      }
+    } else {
+      // Handle the case when signifierNum is 0 or less
+      if ("hmas".equals(this.vocabulary)) {
+        return new ResourceProfileGraphWriter(this.testHMASProfileBuilder.build()).write();
+      } else if ("td".equals(this.vocabulary)) {
+        return new TDGraphWriter(this.testTDBuilder.build()).write();
+      }
     }
-    return this.testProfileBuilder.build();
+    // Return null if vocabulary is neither "hmas" nor "td"
+    return null;
   }
+
 
   @OPERATION
   public void updateAgentSituation() {
@@ -161,7 +225,7 @@ public class ScalabilityConf extends Artifact {
       Object[] prefixedAbilityTypes = {"ex:Pyromancy0"};
       List<String> knownPlans = new ArrayList<>();
 
-      if (dynamicAbilities) {
+      if (dynamicAbilities && "hmas".equals(this.vocabulary)) {
         List<Signifier> exposedSignifiers = this.allSignifiers.subList(0, signifierNum);
         int index = random.nextInt(exposedSignifiers.size());
 
@@ -180,12 +244,16 @@ public class ScalabilityConf extends Artifact {
         }
 
         if (dynamicPlanLib) {
-          knownPlans.add(this.allPlans.get(randomSignifier));
+          knownPlans.add(this.allHMASPlans.get(randomSignifier));
         }
       }
 
       if (!dynamicPlanLib && signifierNum == 1) {
-        knownPlans = this.allPlans.values().stream().toList();
+        if ("hmas".equals(this.vocabulary)) {
+          knownPlans = this.allHMASPlans.values().stream().toList();
+        } else if ("td".equals(this.vocabulary)) {
+          knownPlans = this.allTDPlans.values().stream().toList();
+        }
       }
 
       if (this.getObsProperty("agent_metadata") == null) {
@@ -199,22 +267,52 @@ public class ScalabilityConf extends Artifact {
 
   private String getPlan(String actionType) {
 
+    String applicationContext = "true";
     String planAnnot = "[artifact_name("
             + this.artifactName + "), wsp("
             + this.workspaceName + ")]";
 
     String planActionType = getCurie(actionType, EX_NS);
-
     String planLabel = planActionType.substring(planActionType.indexOf(":") + 1).toLowerCase();
 
-    return "@test_goal_" + planLabel + " +!test_goal : ability(Ability) " +
-            "& signifier([\"" + planActionType + "\"], [Ability], _)" +
-            "<- invokeAction(\"" + planActionType + "\")" + planAnnot + ". ";
+    if (!this.dynamicResolution && "hmas".equals(this.vocabulary)) {
+      applicationContext = "ability(Ability) & signifier([\"" + planActionType + "\"], [Ability], _)";
+    } else if ("td".equals(this.vocabulary)) {
+      applicationContext = "affordance([\"" + planActionType + "\"])";
+    }
+
+    return "@test_goal_" + planLabel + " +!test_goal : " + applicationContext +
+            " <- invokeAction(\"" + planActionType + "\")" + planAnnot + ". ";
+  }
+
+  private void initAllAffordances() {
+    this.allAffordances = new ArrayList<>();
+    this.allTDPlans = new HashMap<ActionAffordance, String>();
+
+    for (int level = 0; level < this.maxSignifierNum/10 ; level++) {
+      for (int j = 0; j < BASE_ABILITIES.length; j++) {
+        String action = ACTIONS[j];
+        String ability = BASE_ABILITIES[j];
+
+        String actionType = EX_NS.getName() + action + level;
+        String abilityType = EX_NS.getName() + ability + level;
+
+        ActionAffordance aff = new ActionAffordance.Builder(action.toLowerCase() + level,
+                new ch.unisg.ics.interactions.wot.td.affordances.Form
+                        .Builder("http://localhost:8000/" + action.toLowerCase() + level)
+                        .setMethodName("POST").build())
+                .addSemanticType(actionType)
+                .build();
+
+        this.allAffordances.add(aff);
+        this.allTDPlans.put(aff, this.getPlan(actionType));
+      }
+    }
   }
 
   private void initAllSignifiers() {
     this.allSignifiers = new ArrayList<>();
-    this.allPlans = new HashMap<>();
+    this.allHMASPlans = new HashMap<>();
 
     for (int level = 0; level < this.maxSignifierNum/10 ; level++) {
       for (int j = 0; j < BASE_ABILITIES.length; j++) {
@@ -242,10 +340,9 @@ public class ScalabilityConf extends Artifact {
                 .build();
 
         this.allSignifiers.add(sig);
-        this.allPlans.put(sig, this.getPlan(actionType));
+        this.allHMASPlans.put(sig, this.getPlan(actionType));
       }
     }
     System.out.println("Total number of signifiers to be loaded: " + this.allSignifiers.size());
-    System.out.println("Total number of plans to be loaded: " + this.allPlans.size());
   }
 }

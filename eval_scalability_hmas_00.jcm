@@ -13,7 +13,8 @@ mas main {
 
     agent agent0 : hmas_agent.asl {
         // EvalType, DynamicPlanLib, MinSigNum, MaxSigNum
-        beliefs: evaluation(scalability, false, false, true, 0, 1000)
+        beliefs: evaluation(scalability, false, false, false, false, 0, 3000)
+                 vocabulary("https://purl.org/hmas/")
     }
 
 

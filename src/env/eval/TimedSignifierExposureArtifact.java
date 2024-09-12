@@ -1,4 +1,4 @@
-package eval;
+package org.hyperagents.jacamo.artifacts.eval;
 
 import cartago.events.ArtifactObsEvent;
 import ch.unisg.ics.interactions.hmas.interaction.io.ResourceProfileGraphReader;
@@ -116,7 +116,6 @@ public class TimedSignifierExposureArtifact extends SignifierExposureArtifact {
       } catch (IOException e) {
         e.printStackTrace();
       }
-      //System.out.println("logged sem: " + this.counter);
     }
     counter++;
   }
@@ -124,22 +123,22 @@ public class TimedSignifierExposureArtifact extends SignifierExposureArtifact {
   private ResourceProfile getAgentProfile() {
 
     String agentProfileStr = "@prefix jacamo: <https://purl.org/hmas/jacamo/> .\n" +
-      "@prefix ex: <https://example.org/> .\n" +
-      "@prefix hctl: <https://www.w3.org/2019/wot/hypermedia#> .\n" +
-      "@prefix htv: <http://www.w3.org/2011/http#> .\n" +
-      "@prefix sh: <http://www.w3.org/ns/shacl#> .\n" +
-      "@prefix prov: <http://www.w3.org/ns/prov#> .\n" +
-      "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n" +
-      "@prefix xs: <http://www.w3.org/2001/XMLSchema#> .\n" +
-      "@prefix hmas: <https://purl.org/hmas/> .\n" +
-      "\n" +
-      "<https://wiser-solid-xi.interactions.ics.unisg.ch/agent0/profile/card> a hmas:ResourceProfile;\n" +
-      "  hmas:isProfileOf <https://wiser-solid-xi.interactions.ics.unisg.ch/agent0/profile/card#me> .\n" +
-      "\n" +
-      "<https://wiser-solid-xi.interactions.ics.unisg.ch/agent0/profile/card#me> a hmas:Agent;\n" +
-      "  hmas:hasAbility [ a hmas:Ability, ex:Pyromancy0\n" +
-      "    ];\n" +
-      "  jacamo:hasBody <http://172.27.52.55:8080/workspaces/61/artifacts/agent0#artifact> .\n";
+            "@prefix ex: <https://example.org/> .\n" +
+            "@prefix hctl: <https://www.w3.org/2019/wot/hypermedia#> .\n" +
+            "@prefix htv: <http://www.w3.org/2011/http#> .\n" +
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n" +
+            "@prefix prov: <http://www.w3.org/ns/prov#> .\n" +
+            "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n" +
+            "@prefix xs: <http://www.w3.org/2001/XMLSchema#> .\n" +
+            "@prefix hmas: <https://purl.org/hmas/> .\n" +
+            "\n" +
+            "<https://wiser-solid-xi.interactions.ics.unisg.ch/agent0/profile/card> a hmas:ResourceProfile;\n" +
+            "  hmas:isProfileOf <https://wiser-solid-xi.interactions.ics.unisg.ch/agent0/profile/card#me> .\n" +
+            "\n" +
+            "<https://wiser-solid-xi.interactions.ics.unisg.ch/agent0/profile/card#me> a hmas:Agent;\n" +
+            "  hmas:hasAbility [ a hmas:Ability, ex:Pyromancy0\n" +
+            "    ];\n" +
+            "  jacamo:hasBody <http://172.27.52.55:8080/workspaces/61/artifacts/agent0#artifact> .\n";
     return ResourceProfileGraphReader.readFromString(agentProfileStr);
   }
 
@@ -158,5 +157,4 @@ public class TimedSignifierExposureArtifact extends SignifierExposureArtifact {
       return selected;
     }
   }
-
 }

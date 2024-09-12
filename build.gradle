@@ -24,18 +24,28 @@ repositories {
 
 dependencies {
     implementation('com.github.danaivach:jacamo:refactor-event-filters-SNAPSHOT')
-    implementation('com.github.danaivach:jacamo-hypermedia:hmas-signifiers-SNAPSHOT')
+    //implementation('org.jacamo:jacamo:1.2.3')
+    implementation('com.github.danaivach:jacamo-hypermedia:hmas-signifiers-SNAPSHOT') {
+       // exclude group: 'org.slf4j', module: 'slf4j-reload4j'   // Exclude log4j binding and reload4j
+    }
     implementation('com.github.danaivach:hmas-java:main-SNAPSHOT')
+    implementation 'com.github.Interactions-HSG:wot-td-java:master-SNAPSHOT'
     implementation('org.apache.httpcomponents.client5:httpclient5-fluent:5.0')
     implementation('org.apache.httpcomponents.core5:httpcore5:5.2.5')
+
+    // Jetty dependencies
     implementation('org.eclipse.jetty.aggregate:jetty-all:9.0.0.RC2')
+
     implementation('org.eclipse.rdf4j:rdf4j-model:5.0.2')
     implementation('org.eclipse.rdf4j:rdf4j-rio-api:5.0.2')
     implementation('org.eclipse.rdf4j:rdf4j-rio-turtle:5.0.2')
+
+    // Apache POI
     implementation('org.apache.poi:poi:5.3.0')
     implementation('org.apache.poi:poi-ooxml:5.3.0')
-
 }
+
+
 
 sourceSets {
     main {
@@ -58,14 +68,39 @@ task runEvalScalability (type: JavaExec, dependsOn: 'classes') {
     doFirst {
         mkdir 'log'
     }
+    def vocab = project.hasProperty('vocab') ? project.vocab.toString() : "hmas"
+    def srm = project.hasProperty('srm') ? project.srm.toInteger() : 0
     def sem = project.hasProperty('sem') ? project.sem.toInteger() : 0
-    def dynamicPlans = project.hasProperty('dynamicPlans') ? project.dynamicPlans.toInteger() : 0
-    def dynamicAbilities = project.hasProperty('dynamicAbilities') ? project.dynamicAbilities.toInteger() : 0
+    //def dynamicPlans = project.hasProperty('dynamicPlans') ? project.dynamicPlans.toInteger() : 0
+    //def dynamicAbilities = project.hasProperty('dynamicAbilities') ? project.dynamicAbilities.toInteger() : 0
 
     mainClass = 'jacamo.infra.JaCaMoLauncher'
 
-    if ([sem, dynamicPlans, dynamicAbilities].every { it in [0, 1] }) {
-        args "eval_scalability_${sem}${dynamicPlans}${dynamicAbilities}.jcm"
+    if ([srm, sem].every { it in [0, 1] }) {
+        args "eval_scalability_${vocab}_${srm}${sem}.jcm"
+    } else {
+        throw new GradleException("Invalid combination of dynamicPlans and dynamicAbilities")
+    }
+    // jvmArgs '-Xss15m'
+    classpath sourceSets.main.runtimeClasspath
+}
+
+task runBASEvalScalability (type: JavaExec, dependsOn: 'classes') {
+    group       ' JaCaMo'
+    description 'runs the JaCaMo application'
+    doFirst {
+        mkdir 'log'
+    }
+    def vocab = project.hasProperty('vocab') ? project.vocab.toString() : "hmas"
+    def srm = project.hasProperty('srm') ? project.srm.toInteger() : 0
+    def sem = project.hasProperty('sem') ? project.sem.toInteger() : 0
+    //def dynamicPlans = project.hasProperty('dynamicPlans') ? project.dynamicPlans.toInteger() : 0
+    //def dynamicAbilities = project.hasProperty('dynamicAbilities') ? project.dynamicAbilities.toInteger() : 0
+
+    mainClass = 'jacamo.infra.JaCaMoLauncher'
+
+    if ([srm, sem].every { it in [0, 1] }) {
+        args "bas_eval_scalability_${vocab}_${srm}${sem}.jcm"
     } else {
         throw new GradleException("Invalid combination of dynamicPlans and dynamicAbilities")
     }
@@ -75,7 +110,7 @@ task runEvalScalability (type: JavaExec, dependsOn: 'classes') {
 
 task buildJCMDeps (type: JavaExec, dependsOn: 'classes') {
     mainClass = 'jacamo.infra.RunJaCaMoProject'
-    args = ['eval_scalability_000.jcm', '--deps']
+    args = ['eval_scalability_hmas_00.jcm', '--deps']
     classpath sourceSets.main.runtimeClasspath
 }
 
@@ -131,8 +166,8 @@ task uberJar(type: Jar, dependsOn: 'classes') {
 
     doFirst {
         copy {
-            from 'eval_scalability_000.jcm'
-            rename 'eval_scalability_000.jcm','default.jcm'
+            from 'eval_scalability_hmas_00.jcm'
+            rename 'eval_scalability_hmas_00.jcm','default.jcm'
             into project.buildDir.absolutePath + '/jcm'
         }
     }

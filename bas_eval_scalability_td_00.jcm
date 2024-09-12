@@ -11,10 +11,10 @@
 
 mas main {
 
-    agent agent0 : hmas_agent.asl {
+    agent agent0 : bas_agent.asl {
         // EvalType, DynamicPlanLib, MinSigNum, MaxSigNum
-        beliefs: evaluation(scalability, false, true, true, 0, 1000)
+        beliefs: evaluation(scalability, false, false)
+                 vocabulary("https://www.w3.org/2019/wot/td#")
     }
-
 
 }

@@ -2,8 +2,6 @@
 
 /* Initial beliefs and rules */
 
-vocabulary("https://purl.org/hmas/").
-
 entry_url("http://172.27.52.55:8080/workspaces/61").
 
 env_name("61").
@@ -35,6 +33,7 @@ env_name("61").
 
 +setupDone : true <- .print("increasing sigs"); increaseSignifiers.
 
+
 @testing[atomic]
 +exposureState("done")[artifact_name(test)] : true <-
     startTimer;
@@ -43,7 +42,7 @@ env_name("61").
     increaseSignifiers.
 
 @test_goal
-+!test_goal : true <- .print("Initial plan").
++!test_goal: true <- .print("Initial plan").
 
 @web_id_initialization
 +!set_up_web_id(WebId) : .my_name(AgentName) <-
