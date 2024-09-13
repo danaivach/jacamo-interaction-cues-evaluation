@@ -1,4 +1,4 @@
-package org.hyperagents.jacamo.artifacts.eval;
+package eval;
 
 import cartago.events.ArtifactObsEvent;
 import ch.unisg.ics.interactions.hmas.interaction.io.ResourceProfileGraphReader;

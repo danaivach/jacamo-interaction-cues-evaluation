@@ -1,4 +1,4 @@
-package org.hyperagents.jacamo.artifacts.eval;
+package eval;
 
 import cartago.*;
 import ch.unisg.ics.interactions.hmas.interaction.io.ResourceProfileGraphReader;
@@ -39,7 +39,6 @@ public class ScalabilityConf extends Artifact {
           "Glyph", "Rune", "Mark", "Sigil", "Emblem", "Seal", "Insignia", "Crest", "Symbol", "Badge"
   };
 
-  protected static final Namespace MANU_ΝS = new SimpleNamespace("manu", "https://ci.mines-stetienne.fr/kg/ontology#");
   protected static final Namespace EX_NS = new SimpleNamespace("ex", "https://example.org/");
   protected static final String WEB_ID = "https://example.org/env-manager";
 

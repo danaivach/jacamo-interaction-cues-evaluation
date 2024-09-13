@@ -1,4 +1,4 @@
-package org.hyperagents.jacamo.artifacts.eval;
+package eval;
 
 import cartago.Artifact;
 import cartago.LINK;

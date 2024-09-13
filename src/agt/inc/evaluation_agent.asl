@@ -10,7 +10,7 @@
 +!start_evaluation(EnvUrl, EnvName): web_id(WebId) & evaluation(scalability, false, true, DynamicPlanLib, DynamicAbilities, MinSigNum, MaxSigNum) <-
    !set_up_scalability_eval(EnvUrl, EnvName, false, true, DynamicPlanLib, DynamicAbilities, MinSigNum, MaxSigNum);
    .print("Created a Signifier Exposure Artifact");
-   makeArtifact("sem", "org.hyperagents.jacamo.artifacts.eval.TimedSignifierExposureArtifact", [], SemId);
+   makeArtifact("sem", "eval.TimedSignifierExposureArtifact", [], SemId);
    !registerNamespaces(SemId);
    +sem(SemId).
 
@@ -18,7 +18,7 @@
 +!start_evaluation(EnvUrl, EnvName): web_id(WebId) & evaluation(scalability, false, true) <-
    !set_up_scalability_eval(EnvUrl, EnvName, false, true);
    .print("Created a Signifier Exposure Artifact");
-   makeArtifact("sem", "org.hyperagents.jacamo.artifacts.eval.TimedSignifierExposureArtifact", [], SemId);
+   makeArtifact("sem", "eval.TimedSignifierExposureArtifact", [], SemId);
    !registerNamespaces(SemId);
    +sem(SemId).
 
@@ -29,10 +29,10 @@
     !setNamespace("ex", "https://example.org/");
 
     ?fileName("scalability", DynamicResolution, DynamicExposure, FileName);
-    makeArtifact("logger", "org.hyperagents.jacamo.artifacts.eval.TimeLogger", [MinSigNum, FileName], LoggerId);
+    makeArtifact("logger", "eval.TimeLogger", [MinSigNum, FileName], LoggerId);
 
     ?vocabulary(Vocabulary);
-    makeArtifact("conf", "org.hyperagents.jacamo.artifacts.eval.ScalabilityConf", [EnvUrl, EnvName, "test", Vocabulary, DynamicResolution, DynamicPlanLib, DynamicAbilities, MinSigNum, MaxSigNum, true], ConfId);
+    makeArtifact("conf", "eval.ScalabilityConf", [EnvUrl, EnvName, "test", Vocabulary, DynamicResolution, DynamicPlanLib, DynamicAbilities, MinSigNum, MaxSigNum, true], ConfId);
     linkArtifacts(ConfId, "conf-out", LoggerId);
     focus(ConfId).
 
@@ -43,10 +43,10 @@
     !setNamespace("ex", "https://example.org/");
 
     ?fileName("scalability", DynamicResolution, DynamicExposure, FileName);
-    makeArtifact("logger", "org.hyperagents.jacamo.artifacts.eval.TimeLogger", [0, FileName], LoggerId);
+    makeArtifact("logger", "eval.TimeLogger", [0, FileName], LoggerId);
 
     ?vocabulary(Vocabulary);
-    makeArtifact("conf", "org.hyperagents.jacamo.artifacts.eval.ScalabilityConfBASUseCase", [EnvUrl, EnvName, Vocabulary], ConfId);
+    makeArtifact("conf", "eval.ScalabilityConfBASUseCase", [EnvUrl, EnvName, Vocabulary], ConfId);
     linkArtifacts(ConfId, "bas-conf-out", LoggerId);
     focus(ConfId).
 
