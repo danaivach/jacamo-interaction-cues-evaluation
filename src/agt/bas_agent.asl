@@ -31,13 +31,13 @@ env_name("61").
     start;
     !load_environment(EnvUrl, "61").
 
-+preferred_artifact(DeviceId) <- .print("Target device set: ", DeviceId).
++preferred_artifact(DeviceId) : true <-
+    .print("Target device set: ", DeviceId).
 
 @testing[atomic]
 +exposureState("done") : preferred_artifact(DeviceId) <-
     startTimer;
     !test_goal(DeviceId);
-    stopTimerAndLog;
     deployNewDevice.
 
 @test_goal

@@ -98,9 +98,13 @@ public class SignifierResolutionMechanism extends Agent {
         while (candidateBeliefs.hasNext()) {
             Literal candidateBelief = candidateBeliefs.next();
             Term abilityName = candidateBelief.getTerm(0);
-            ListTermImpl abilityList = new ListTermImpl();
-            abilityList.add(abilityName);
-            abilities.add(new Ability(abilityList));
+            if (abilityName.isList()) {
+                abilities.add(new Ability((ListTerm) abilityName));
+            } else {
+                ListTermImpl abilityList = new ListTermImpl();
+                abilityList.add(abilityName);
+                abilities.add(new Ability(abilityList));
+            }
         }
         return abilities;
     }

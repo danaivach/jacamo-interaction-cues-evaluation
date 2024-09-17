@@ -94,13 +94,13 @@ task runBASEvalScalability (type: JavaExec, dependsOn: 'classes') {
     def vocab = project.hasProperty('vocab') ? project.vocab.toString() : "hmas"
     def srm = project.hasProperty('srm') ? project.srm.toInteger() : 0
     def sem = project.hasProperty('sem') ? project.sem.toInteger() : 0
-    //def dynamicPlans = project.hasProperty('dynamicPlans') ? project.dynamicPlans.toInteger() : 0
-    //def dynamicAbilities = project.hasProperty('dynamicAbilities') ? project.dynamicAbilities.toInteger() : 0
+    def abilities = project.hasProperty('abilities') ? project.abilities.toInteger() : 0
+    def context = project.hasProperty('context') ? project.context.toInteger() : 0
 
     mainClass = 'jacamo.infra.JaCaMoLauncher'
 
-    if ([srm, sem].every { it in [0, 1] }) {
-        args "bas_eval_scalability_${vocab}_${srm}${sem}.jcm"
+    if ([srm, sem, abilities, context].every { it in [0, 1] }) {
+        args "bas_eval_scalability_${vocab}_${context}${abilities}${srm}${sem}.jcm"
     } else {
         throw new GradleException("Invalid combination of dynamicPlans and dynamicAbilities")
     }

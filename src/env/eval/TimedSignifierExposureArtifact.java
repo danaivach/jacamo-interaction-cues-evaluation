@@ -1,5 +1,8 @@
 package eval;
 
+import cartago.ArtifactObsProperty;
+import cartago.LINK;
+import cartago.OPERATION;
 import cartago.events.ArtifactObsEvent;
 import ch.unisg.ics.interactions.hmas.interaction.io.ResourceProfileGraphReader;
 import ch.unisg.ics.interactions.hmas.interaction.signifiers.ResourceProfile;
@@ -15,8 +18,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class TimedSignifierExposureArtifact extends SignifierExposureArtifact {
 
@@ -25,6 +28,7 @@ public class TimedSignifierExposureArtifact extends SignifierExposureArtifact {
   private Sheet sheet;
   public Map<Integer, Long> exposureTimes;
   int counter;
+  List<String> assumedAbilities;
 
   public void init() {
     super.init();
@@ -32,6 +36,8 @@ public class TimedSignifierExposureArtifact extends SignifierExposureArtifact {
     this.counter = 0;
     this.fileName =  "sem_time.xlsx";
     this.exposureTimes = new HashMap<Integer, Long>();
+    this.assumedAbilities = new ArrayList<>();
+    this.assumedAbilities.add("https://example.org/Pyromancy0");
 
     if (Files.exists(Paths.get(fileName))) {
       try (FileInputStream fis = new FileInputStream(fileName)) {
@@ -51,8 +57,12 @@ public class TimedSignifierExposureArtifact extends SignifierExposureArtifact {
     }
   }
 
-
-
+  @OPERATION
+  public void setAssumedAbilities(Object[] assumedAbilities){
+    this.assumedAbilities = Arrays.stream(assumedAbilities)
+            .map(Object::toString)
+            .collect(Collectors.toList());
+  }
 
   @Override
   protected SignifierFilter getSignifierFilter(String agentProfileUrl) {
@@ -122,6 +132,7 @@ public class TimedSignifierExposureArtifact extends SignifierExposureArtifact {
 
   private ResourceProfile getAgentProfile() {
 
+    // Prefixes and base RDF structure
     String agentProfileStr = "@prefix jacamo: <https://purl.org/hmas/jacamo/> .\n" +
             "@prefix ex: <https://example.org/> .\n" +
             "@prefix hctl: <https://www.w3.org/2019/wot/hypermedia#> .\n" +
@@ -135,10 +146,16 @@ public class TimedSignifierExposureArtifact extends SignifierExposureArtifact {
             "<https://wiser-solid-xi.interactions.ics.unisg.ch/agent0/profile/card> a hmas:ResourceProfile;\n" +
             "  hmas:isProfileOf <https://wiser-solid-xi.interactions.ics.unisg.ch/agent0/profile/card#me> .\n" +
             "\n" +
-            "<https://wiser-solid-xi.interactions.ics.unisg.ch/agent0/profile/card#me> a hmas:Agent;\n" +
-            "  hmas:hasAbility [ a hmas:Ability, ex:Pyromancy0\n" +
-            "    ];\n" +
-            "  jacamo:hasBody <http://172.27.52.55:8080/workspaces/61/artifacts/agent0#artifact> .\n";
+            "<https://wiser-solid-xi.interactions.ics.unisg.ch/agent0/profile/card#me> a hmas:Agent;\n";
+
+    // Loop through each assumed ability and append RDF statements
+    for (String assumedAbility : assumedAbilities) {
+      agentProfileStr += "  hmas:hasAbility [ a hmas:Ability, <" + assumedAbility + "> ];\n";
+    }
+
+    // Append final statement
+    agentProfileStr += "  jacamo:hasBody <http://172.27.52.55:8080/workspaces/61/artifacts/agent0#artifact> .\n";
+
     return ResourceProfileGraphReader.readFromString(agentProfileStr);
   }
 
@@ -150,10 +167,10 @@ public class TimedSignifierExposureArtifact extends SignifierExposureArtifact {
 
     @Override
     public boolean select(ArtifactObsEvent ev) {
-      long startTime = System.currentTimeMillis();
+      //long startTime = System.currentTimeMillis();
       boolean selected = super.select(ev);
-      long endTime = System.currentTimeMillis();
-      ((TimedSignifierExposureArtifact) artifact).logInMap(endTime-startTime);
+      //long endTime = System.currentTimeMillis();
+      //((TimedSignifierExposureArtifact) artifact).logInMap(endTime-startTime);
       return selected;
     }
   }

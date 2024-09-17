@@ -11,10 +11,12 @@
 
 mas main {
 
-    agent agent0 : bas_agent.asl {
-        // EvalType, DynamicPlanLib, MinSigNum, MaxSigNum
-        beliefs: evaluation(scalability, false, false)
-                 vocabulary("https://www.w3.org/2019/wot/td#")
+    agent bas_agent : bas_agent.asl {
+        // basEvaluation(EvaluationType, RecommendedContext, RecommendedAbilities, SRM, SEM)
+        beliefs: basEvaluation(scalability, false, true, true, false)
+                 vocabulary("https://purl.org/hmas/")
+        ag-class: srm.SignifierResolutionMechanism
     }
+
 
 }

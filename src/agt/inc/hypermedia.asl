@@ -92,8 +92,8 @@
   !registerForWebSub(WkspName, WkspArtIdTerm).
 
 @hypermedia_workspace_joining_hmas
-+!joinHypermediaWorkspace(WkspName, WkspArtId) : vocabulary("https://purl.org/hmas/") & signifier(["jacamo:JoinWorkspace"],_,_) <-
-  invokeAction("jacamo:JoinWorkspace")[artifact_id(WkspArtId)];.
++!joinHypermediaWorkspace(WkspName, WkspArtId) : vocabulary("https://purl.org/hmas/") & signifier(["jacamo:JoinWorkspace"]) <-
+  invokeAction("jacamo:JoinWorkspace")[artifact_id(WkspArtId)].
 
 @hypermedia_workspace_joining_td
 +!joinHypermediaWorkspace(WkspName, WkspArtId) : vocabulary("https://www.w3.org/2019/wot/td#") <-
