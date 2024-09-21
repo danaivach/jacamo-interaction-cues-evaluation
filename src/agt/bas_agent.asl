@@ -6,6 +6,15 @@ entry_url("http://172.27.52.55:8080/workspaces/61").
 
 env_name("61").
 
+fullRooms(AvailableArtifacts) :-
+    .length(AvailableArtifacts, ArtifactsNum) &
+    (ArtifactsNum mod 12 == 0 |
+        (
+            .member(61,AvailableArtifacts) &
+            (ArtifactsNum - 1) mod 12 == 0
+        )
+    ).
+
 /* Initial goals */
 
 !start.
@@ -34,8 +43,27 @@ env_name("61").
 +preferred_artifact(DeviceId) : true <-
     .print("Target device set: ", DeviceId).
 
-@testing[atomic]
-+exposureState("done") : preferred_artifact(DeviceId) <-
++preferred_artifacts(ArtName0, ArtName1, ArtName2, ArtName3, ArtName4) : true <-
+    .print("Target components set: ", ArtName0, ", ", ArtName1, ", ", ArtName2, ", ", ArtName3, ", ", ArtName4).
+
+@testing_many_artifacts_setup[atomic]
++exposureState("done") : true <-
+    .findall(ArtName, exposureState("done")[artifact_name(ArtName)], AvailableArtifacts);
+    !select_test_goal(AvailableArtifacts).
+
+@testing_many_artifacts[atomic]
++!select_test_goal(AvailableArtifacts) : fullRooms(AvailableArtifacts)  <-
+    ?preferred_artifacts(ArtName0, ArtName1, ArtName2, ArtName3, ArtName4);
+    startTimer;
+    !test_goal(ArtName0, ArtName1, ArtName2, ArtName3, ArtName4);
+    .drop_all_events;
+    deployNewDevice.
+
+@testing_many_artifacts_denied[atomic]
++!select_test_goal(ArtifactsNum) : true .
+
+@testing_one_artifact[atomic]
++exposureState("done") : true <-
     startTimer;
     !test_goal(DeviceId);
     deployNewDevice.

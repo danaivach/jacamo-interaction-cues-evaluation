@@ -12,6 +12,7 @@
 
    // Register the JaCaMo namespace in the NS Registry
    !setNamespace("jacamo", "https://purl.org/hmas/jacamo/");
+   !setNamespace("websub", "https://purl.org/hmas/websub/");
 
    // Handle the entry workspace
    +workspace(EnvUrl, EnvName).
@@ -59,7 +60,7 @@
   ?workspace(WkspIRI, WkspNameStr);
 
   // Focus on the ResourceArtifact to observe its properties and events
-  //registerArtifactForFocus(WkspIRI, ArtIRI, ArtId, ArtName);
+  registerArtifactForFocus(WkspIRI, ArtIRI, ArtId, ArtName);
 
   .print("Created artifact ", ArtName, ", and registered for notifications").
 

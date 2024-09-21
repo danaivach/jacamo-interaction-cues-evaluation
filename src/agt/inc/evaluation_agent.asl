@@ -46,14 +46,28 @@
    .print("RecommendedContext:", RecContext, ", RecommendedAbilities:", RecAbilities);
 
     !setNamespace("ex", "https://example.org/");
+    !setNamespace("heatingGroupBoard", "http://172.27.52.55:8080/workspaces/61/artifacts/heatingGroupBoard/");
 
     ?fileName("scalability", RecContext, RecAbilities, DynamicResolution, DynamicExposure, FileName);
     makeArtifact("logger", "eval.TimeLogger", [0, FileName], LoggerId);
 
     ?vocabulary(Vocabulary);
-    makeArtifact("conf", "eval.ScalabilityConfSmallScaleBAS", [EnvUrl, EnvName, Vocabulary, RecAbilities, DynamicResolution], ConfId);
+    makeArtifact("conf", "eval.ScalabilityConfLargeScaleBAS", [EnvUrl, EnvName, Vocabulary, RecAbilities, DynamicResolution], ConfId);
     linkArtifacts(ConfId, "bas-conf-out", LoggerId);
     focus(ConfId).
+
+@agent_metadata_many_artifacts_many_plans[atomic]
++agent_metadata([ArtName0, ArtName1, ArtName2, ArtName3, ArtName4], Abilities, KnownPlans) : true <-
+    !assume_abilities(Abilities);
+    .term2string(ArtName0Term, ArtName0);
+    .term2string(ArtName1Term, ArtName1);
+    .term2string(ArtName2Term, ArtName2);
+    .term2string(ArtName3Term, ArtName3);
+    .term2string(ArtName4Term, ArtName4);
+    -+preferred_artifacts(ArtName0Term, ArtName1Term, ArtName2Term, ArtName3Term, ArtName4Term);
+    .relevant_plans({+!test_goal}, _, LL);
+    .remove_plan(LL);
+    .add_plan(KnownPlans).
 
 @agent_metadata_update[atomic]
 +agent_metadata([KnownPlan], AbilityType, true) : true <-
@@ -82,7 +96,7 @@
   !registerNamespaces(Prefixes, ArtId).
 
 @agent_metadata_preferred_artifact_many_plans[atomic]
-+agent_metadata(PreferredArtifact, [], KnownPlans) : true <-
++agent_metadata(referredArtifact, [], KnownPlans) : true <-
     .term2string(PreferredArtifactTerm, PreferredArtifact);
     -+preferred_artifact(PreferredArtifactTerm);
     .relevant_plans({+!test_goal}, _, LL);
@@ -101,8 +115,32 @@
 +!assume_abilities([]).
 
 +!assume_abilities([Ability|Abilities]) : true <-
+    .wait(5000);
     +ability([Ability]);
     !assume_abilities(Abilities).
+
+@artifact_discovery_custom[atomic]
++artifact(ArtIRI, ArtName, ArtTypes)[workspace(WkspName,_)] : true <-
+  //.print("Discovered artifact (name: ", ArtName ,") with types ", ArtTypes, " in workspace ", WkspName, ": ", ArtIRI);
+  ?joinedWsp(WkspId, WkspNameTerm, WkspName);
+
+  // Create a hypermedia ResourceArtifact for this artifact.
+  !makeMirroringArtifact(ArtIRI, ArtName, ArtId, WkspId);
+
+  // Set WebId
+  ?web_id(WebId);
+  setOperatorWebId(WebId)[artifact_id(ArtId)];
+
+  // Register to the ResourceArtifact for notifications
+  //!registerForWebSub(ArtName, ArtId);
+
+  .term2string(WkspNameTerm, WkspNameStr);
+  ?workspace(WkspIRI, WkspNameStr);
+
+  // Focus on the ResourceArtifact to observe its properties and events
+  //registerArtifactForFocus(WkspIRI, ArtIRI, ArtId, ArtName);
+
+  .print("Created artifact ", ArtName).
 
 @hypermedia_artifact_instantiation_hmas_dryrun_sem
 +!makeMirroringArtifact(ArtIRI, ArtName, ArtId, WkspId) : sem(SemId) & vocabulary("https://purl.org/hmas/") <-
