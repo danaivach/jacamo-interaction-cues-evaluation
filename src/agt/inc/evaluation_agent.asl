@@ -15,8 +15,8 @@
    +sem(SemId).
 
 @scalability_evaluation_bas_sem
-+!start_evaluation(EnvUrl, EnvName): web_id(WebId) & basEvaluation(scalability, RecContext, true, false, true) <-
-   !set_up_scalability_eval(EnvUrl, EnvName, RecContext, true, false, true);
++!start_evaluation(EnvUrl, EnvName): web_id(WebId) & basEvaluation(scalability, RecContext, true, DynamicResolution, true) <-
+   !set_up_scalability_eval(EnvUrl, EnvName, RecContext, true, DynamicResolution, true);
    .wait(4000);
    .print("Created a Signifier Exposure Artifact");
    makeArtifact("sem", "eval.TimedSignifierExposureArtifact", [], SemId);
@@ -203,6 +203,10 @@
 +?fileName(EvalType, false, true, true, false, FileName) : vocabulary("https://purl.org/hmas/") <-
     .concat(EvalType, "_hmas_0110", FileName).
 
+@log_filename_bas_hmas_srm_sem_setup
++?fileName(EvalType, false, true, true, true, FileName) : vocabulary("https://purl.org/hmas/") <-
+    .concat(EvalType, "_hmas_0111", FileName).
+
 @log_filename_bas_td_baseline_setup
 +?fileName(EvalType, false, false, false, false, FileName) : vocabulary("https://www.w3.org/2019/wot/td#") <-
     .concat(EvalType, "_td_0000", FileName).
@@ -211,5 +215,11 @@
     .delete("/#artifact",ArtIRI,BaseIRI);
     .concat(BaseIRI, "/", Namespace);
     !setNamespace(ArtName, Namespace).
+
+@websub_registration_custom_component_hub
++!registerForWebSub(ArtName, ArtId) : true <-
+  ?websub(HubIRI, TopicIRI)[artifact_id(ArtId)];
+  //registerArtifactForWebSub(TopicIRI, ArtId, "http://172.27.52.55:5000/observe");
+  registerArtifactForWebSub(TopicIRI, ArtId, HubIRI).
 
 

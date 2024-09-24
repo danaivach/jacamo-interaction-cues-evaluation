@@ -341,10 +341,13 @@ public class ScalabilityConfLargeScaleBAS extends Artifact {
       String contextForAction = generateContextForAction(action, artifactName, i);
 
       // Append the generated context
-      if (applicationContext.length() > 0) {
+      if (!applicationContext.isEmpty() && !applicationContext.toString().equals("true")) {
         applicationContext.append(" & "); // Add delimiter if not the first context
       }
       applicationContext.append(contextForAction);
+      if (this.concisePlans) {
+        break;
+      }
     }
 
     return applicationContext.toString().trim();
@@ -357,7 +360,7 @@ public class ScalabilityConfLargeScaleBAS extends Artifact {
 
     if ("hmas".equals(this.vocabulary)) {
       if (concisePlans) {
-        context.append("true ");
+        return "true";
       } else {
         if (adjustedExposure) {
           context.append(String.format("ability(Abilities%s) & signifier([\"%s\"], Abilities%s, _)[artifact_name(%s)] ",
