@@ -12,7 +12,7 @@
 mas main {
 
     agent bas_agent : bas_agent.asl {
-        // basEvaluation(EvaluationType, RecommendedContext, RecommendedAbilities, SRM, SEM)
+        // basEvaluation(EvaluationType, RecommendedAbilities, RecommendedContext, SRM, SEM)
         beliefs: basEvaluation(scalability, false, false, false, false)
                  vocabulary("https://www.w3.org/2019/wot/td#")
     }

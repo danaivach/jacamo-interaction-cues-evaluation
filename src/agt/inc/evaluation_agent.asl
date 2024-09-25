@@ -40,19 +40,20 @@
     focus(ConfId).
 
 @scalability_bas_setup
-+!set_up_scalability_eval(EnvUrl, EnvName, RecContext, RecAbilities, DynamicResolution, DynamicExposure): true <-
++!set_up_scalability_eval(EnvUrl, EnvName, RecAbilities, RecContext, DynamicResolution, DynamicExposure): true <-
    .print("Building Automation System - Scalability Evaluation");
    .print("SRM:", DynamicResolution, ", SEM:", DynamicExposure);
-   .print("RecommendedContext:", RecContext, ", RecommendedAbilities:", RecAbilities);
+   .print("RecommendedAbilities:", RecAbilities, ", RecommendedContext:", RecContext);
 
     !setNamespace("ex", "https://example.org/");
+    !setNamespace("saref", "https://saref.etsi.org/core/");
     !setNamespace("heatingGroupBoard", "http://172.27.52.55:8080/workspaces/61/artifacts/heatingGroupBoard/");
 
-    ?fileName("scalability", RecContext, RecAbilities, DynamicResolution, DynamicExposure, FileName);
+    ?fileName("scalability", RecAbilities, RecContext, DynamicResolution, DynamicExposure, FileName);
     makeArtifact("logger", "eval.TimeLogger", [0, FileName], LoggerId);
 
     ?vocabulary(Vocabulary);
-    makeArtifact("conf", "eval.ScalabilityConfLargeScaleBAS", [EnvUrl, EnvName, Vocabulary, RecAbilities, DynamicResolution], ConfId);
+    makeArtifact("conf", "eval.ScalabilityConfLargeScaleBAS", [EnvUrl, EnvName, Vocabulary, RecAbilities, RecContext, DynamicResolution], ConfId);
     linkArtifacts(ConfId, "bas-conf-out", LoggerId);
     focus(ConfId).
 
@@ -132,7 +133,7 @@
   setOperatorWebId(WebId)[artifact_id(ArtId)];
 
   // Register to the ResourceArtifact for notifications
-  //!registerForWebSub(ArtName, ArtId);
+  !registerForWebSub(ArtName, ArtId);
 
   .term2string(WkspNameTerm, WkspNameStr);
   ?workspace(WkspIRI, WkspNameStr);
@@ -191,21 +192,38 @@
 +?fileName(EvalType, false, false, false, false, FileName) : vocabulary("https://purl.org/hmas/") <-
     .concat(EvalType, "_hmas_0000", FileName).
 
-@log_filename_bas_hmas_baseline_abilities_setup
+@log_filename_bas_hmas_baseline_context_setup
 +?fileName(EvalType, false, true, false, false, FileName) : vocabulary("https://purl.org/hmas/") <-
     .concat(EvalType, "_hmas_0100", FileName).
 
-@log_filename_bas_hmas_sem_setup
+@log_filename_bas_hmas_baseline_all_setup
++?fileName(EvalType, true, true, false, false, FileName) : vocabulary("https://purl.org/hmas/") <-
+    .print("Saving to file: _hmas_1100");
+    .concat(EvalType, "_hmas_1100", FileName).
+
+@log_filename_bas_hmas_sem_context_setup
 +?fileName(EvalType, false, true, false, true, FileName) : vocabulary("https://purl.org/hmas/") <-
     .concat(EvalType, "_hmas_0101", FileName).
 
-@log_filename_bas_hmas_srm_setup
+@log_filename_bas_hmas_sem_all_setup
++?fileName(EvalType, true, true, false, true, FileName) : vocabulary("https://purl.org/hmas/") <-
+    .concat(EvalType, "_hmas_1101", FileName).
+
+@log_filename_bas_hmas_srm_context_setup
 +?fileName(EvalType, false, true, true, false, FileName) : vocabulary("https://purl.org/hmas/") <-
     .concat(EvalType, "_hmas_0110", FileName).
 
-@log_filename_bas_hmas_srm_sem_setup
+@log_filename_bas_hmas_srm_all_setup
++?fileName(EvalType, true, true, true, false, FileName) : vocabulary("https://purl.org/hmas/") <-
+    .concat(EvalType, "_hmas_1110", FileName).
+
+@log_filename_bas_hmas_srm_sem_context_setup
 +?fileName(EvalType, false, true, true, true, FileName) : vocabulary("https://purl.org/hmas/") <-
     .concat(EvalType, "_hmas_0111", FileName).
+
+@log_filename_bas_hmas_srm_sem_all_setup
++?fileName(EvalType, true, true, true, true, FileName) : vocabulary("https://purl.org/hmas/") <-
+    .concat(EvalType, "_hmas_1111", FileName).
 
 @log_filename_bas_td_baseline_setup
 +?fileName(EvalType, false, false, false, false, FileName) : vocabulary("https://www.w3.org/2019/wot/td#") <-
@@ -219,7 +237,7 @@
 @websub_registration_custom_component_hub
 +!registerForWebSub(ArtName, ArtId) : true <-
   ?websub(HubIRI, TopicIRI)[artifact_id(ArtId)];
-  //registerArtifactForWebSub(TopicIRI, ArtId, "http://172.27.52.55:5000/observe");
+  registerArtifactForWebSub(TopicIRI, ArtId, "http://172.27.52.55:5000/observe");
   registerArtifactForWebSub(TopicIRI, ArtId, HubIRI).
 
 

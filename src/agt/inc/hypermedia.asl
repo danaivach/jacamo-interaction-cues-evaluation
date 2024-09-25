@@ -1,3 +1,7 @@
+/* Rules for inferring whether the agent has beliefs in a list */
+applies([]) :- true.
+applies([Context | RemainingContext]) :-  Context & applies(RemainingContext).
+
 /*
  * Mirroring of a hypermedia environment on the local CArtAgO node
  */

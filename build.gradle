@@ -100,7 +100,7 @@ task runBASEvalScalability (type: JavaExec, dependsOn: 'classes') {
     mainClass = 'jacamo.infra.JaCaMoLauncher'
 
     if ([srm, sem, abilities, context].every { it in [0, 1] }) {
-        args "bas_eval_scalability_${vocab}_${context}${abilities}${srm}${sem}.jcm"
+        args "bas_eval_scalability_${vocab}_${abilities}${context}${srm}${sem}.jcm"
     } else {
         throw new GradleException("Invalid combination of dynamicPlans and dynamicAbilities")
     }

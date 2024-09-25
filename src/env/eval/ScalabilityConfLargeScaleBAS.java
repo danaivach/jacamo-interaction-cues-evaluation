@@ -5,6 +5,7 @@ import ch.unisg.ics.interactions.hmas.core.vocabularies.CORE;
 import ch.unisg.ics.interactions.hmas.interaction.io.ResourceProfileGraphWriter;
 import ch.unisg.ics.interactions.hmas.interaction.signifiers.*;
 import ch.unisg.ics.interactions.hmas.interaction.vocabularies.INTERACTION;
+import ch.unisg.ics.interactions.hmas.interaction.vocabularies.SHACL;
 import ch.unisg.ics.interactions.wot.td.ThingDescription;
 import ch.unisg.ics.interactions.wot.td.affordances.ActionAffordance;
 import ch.unisg.ics.interactions.wot.td.io.TDGraphWriter;
@@ -17,14 +18,16 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Namespace;
 import org.eclipse.rdf4j.model.impl.SimpleNamespace;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.util.ModelBuilder;
+import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 
 import java.util.*;
 
 @ARTIFACT_INFO(
-  outports = {
-    @OUTPORT(name = "bas-conf-out")
-  }
+        outports = {
+                @OUTPORT(name = "bas-conf-out")
+        }
 )
 public class ScalabilityConfLargeScaleBAS extends Artifact {
 
@@ -35,12 +38,12 @@ public class ScalabilityConfLargeScaleBAS extends Artifact {
   protected static final String WEB_ID = "https://example.org/env-manager";
 
   protected static final String[] GENERIC_ACTIONS = {
-    "Ignite", "Drench", "Gust", "Stabilize", "Charge", "Freeze", "Forge", "Enshroud", "Illuminate", "Disperse"
+          "Ignite", "Drench", "Gust", "Stabilize", "Charge", "Freeze", "Forge", "Enshroud", "Illuminate", "Disperse"
   };
 
   protected static final String[] GENERIC_ABILITIES = {
-    "Pyromancy", "Hydromancy", "Aeromancy", "Geomancy", "Electromancy",
-    "Cryomancy", "Metallurgy", "Shadowcraft", "Lumomancy", "Voidweaving"
+          "Pyromancy", "Hydromancy", "Aeromancy", "Geomancy", "Electromancy",
+          "Cryomancy", "Metallurgy", "Shadowcraft", "Lumomancy", "Voidweaving"
   };
 
   private static final Map<String, Map<String, String>> planActionToArtifactMap = new HashMap<>();
@@ -102,7 +105,8 @@ public class ScalabilityConfLargeScaleBAS extends Artifact {
   protected String envURL;
   protected String workspaceName;
   protected String vocabulary;
-  protected boolean adjustedExposure;
+  protected boolean recommendedAbilities;
+  protected boolean recommendedContext;
   protected boolean concisePlans;
   protected int registeredRoomNum;
   protected int registeredDeviceNum;
@@ -112,10 +116,11 @@ public class ScalabilityConfLargeScaleBAS extends Artifact {
 
 
 
-  public void init(String url, String workspaceName, String vocabulary, boolean adjustedExposure, boolean concisePlans) {
+  public void init(String url, String workspaceName, String vocabulary, boolean recommendedAbilities, boolean recommendedContext, boolean concisePlans) {
     this.envURL = url;
     this.workspaceName = workspaceName;
-    this.adjustedExposure = adjustedExposure;
+    this.recommendedAbilities = recommendedAbilities;
+    this.recommendedContext = recommendedContext;
     this.concisePlans = concisePlans;
     this.registeredRoomNum = 0;
     this.registeredDeviceNum = 0;
@@ -131,7 +136,7 @@ public class ScalabilityConfLargeScaleBAS extends Artifact {
       this.createTDs();
     } else {
       failed("Unknown vocabulary. Please, select either \"hmas\" for testing with hMAS Resource Profiles," +
-        "or \"td\" for testing with W3C Web of Things Thing Descriptions.");
+              "or \"td\" for testing with W3C Web of Things Thing Descriptions.");
     }
 
     this.initKnownPlans(this.registeredRoomNum);
@@ -266,9 +271,13 @@ public class ScalabilityConfLargeScaleBAS extends Artifact {
       for (int roomComponent = 0; roomComponent < ROOM_COMPONENTS_NUM; roomComponent ++) {
         String profileURIStr = this.envURL + "/artifacts/component" + componentIndex;
         SimpleValueFactory rdf = SimpleValueFactory.getInstance();
-        BNode creatorNode = rdf.createBNode();
-        BNode subscriberNode = rdf.createBNode();
-        BNode observerNode = rdf.createBNode();
+        IRI contextIRI = rdf.createIRI(profileURIStr + "/#component-state-context");
+        IRI artifactIRI = rdf.createIRI(profileURIStr + "/#artifact");
+        IRI sarefHasStateIRI = rdf.createIRI("https://saref.etsi.org/core/hasState");
+        BNode artifactProperty = Values.bnode();
+        BNode creatorNode = Values.bnode();
+        BNode subscriberNode = Values.bnode();
+        BNode observerNode = Values.bnode();
 
         ResourceProfile.Builder builder = new ResourceProfile.Builder(new ch.unisg.ics.interactions.hmas.core.hostables.Artifact
                 .Builder()
@@ -296,10 +305,22 @@ public class ScalabilityConfLargeScaleBAS extends Artifact {
                   .addRequiredSemanticType(EX_NS.getName() + "Action" + roomComponent + actionLetter)
                   .build();
 
+          ModelBuilder contextModelBuilder = new ModelBuilder()
+                  .subject(contextIRI)
+                  .add(rdf.createIRI(SHACL.NAMESPACE + "targetNode"), artifactIRI)
+                  .add(SHACL.PATH, sarefHasStateIRI)
+                  .add(SHACL.MIN_COUNT, 1)
+                  .add(SHACL.MAX_COUNT, 1)
+                  .add(SHACL.HAS_VALUE, "ready");
+
           Signifier sig = new Signifier.Builder(spec)
                   .addRecommendedAbility(new Ability
                           .Builder()
                           .addSemanticType(this.envURL + "/artifacts/heatingGroupBoard/#Room" + room + "OperatorAbility")
+                          .build())
+                  .addRecommendedContext(new Context.Builder()
+                          .setIRI(contextIRI)
+                          .addModel(contextModelBuilder.build())
                           .build())
                   .setIRIAsString(profileURIStr + "/#" + roomComponent + actionLetter)
                   .build();
@@ -316,7 +337,7 @@ public class ScalabilityConfLargeScaleBAS extends Artifact {
   private String getGenericPlan(String action) {
     String applicationContext = "true";
     String planAnnot = "[artifact_name(test), wsp("
-      + this.workspaceName + ")]";
+            + this.workspaceName + ")]";
 
     String actionType = EX_NS.getPrefix() + ":" + action;
 
@@ -327,7 +348,7 @@ public class ScalabilityConfLargeScaleBAS extends Artifact {
     }
 
     return "@test_goal_" + action.toLowerCase() + " +!test_goal_" + action + " : " + applicationContext +
-      " <- invokeAction(\"" + actionType + "\")" + planAnnot + ". ";
+            " <- invokeAction(\"" + actionType + "\")" + planAnnot + ". ";
   }
 
   private String generateApplicationContext(String[] actions, Map<String, String> actionToArtifactMap) {
@@ -362,7 +383,10 @@ public class ScalabilityConfLargeScaleBAS extends Artifact {
       if (concisePlans) {
         return "true";
       } else {
-        if (adjustedExposure) {
+        if (recommendedContext && recommendedAbilities) {
+          context.append(String.format("signifier([\"%s\"], Abilities%s, Context%s)[artifact_name(%s)] & ability(Abilities%s) & applies(Context%s)",
+                  prefixedAction, abilitySuffix, abilitySuffix, artifactName, abilitySuffix, abilitySuffix));
+        } else if (recommendedAbilities) {
           context.append(String.format("ability(Abilities%s) & signifier([\"%s\"], Abilities%s, _)[artifact_name(%s)] ",
                   abilitySuffix, prefixedAction, abilitySuffix, artifactName));
         } else {
@@ -464,4 +488,3 @@ public class ScalabilityConfLargeScaleBAS extends Artifact {
     return defaultAffordances;
   }
 }
-

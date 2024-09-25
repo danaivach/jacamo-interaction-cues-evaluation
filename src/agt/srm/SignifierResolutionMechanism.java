@@ -172,6 +172,8 @@ public class SignifierResolutionMechanism extends Agent {
 
                 Ability recommendedAbility = actionAbilities.get(exposedAction);
                 if (recommendedAbility != null && !recommendedAbility.getTypes().isEmpty()) {
+                    //System.out.println("Recommended " + recommendedAbility);
+                    //System.out.println("Agent " + agentAbilities);
                     if (!agentAbilities.contains(recommendedAbility)) {
                         isApplicable = false;
                         break; // Exit loop early if any ability is missing

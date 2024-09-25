@@ -13,7 +13,7 @@ mas main {
 
     agent bas_agent : bas_agent.asl {
         // basEvaluation(EvaluationType, RecommendedAbilities, RecommendedContext, SRM, SEM)
-        beliefs: basEvaluation(scalability, false, true, true, true)
+        beliefs: basEvaluation(scalability, true, true, true, false)
                  vocabulary("https://purl.org/hmas/")
         ag-class: srm.SignifierResolutionMechanism
     }
