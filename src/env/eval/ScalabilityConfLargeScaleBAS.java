@@ -394,9 +394,14 @@ public class ScalabilityConfLargeScaleBAS extends Artifact {
         }
       }
     } else if ("td".equals(this.vocabulary)) {
-      context.append(String.format("affordance([\"%s\"])[artifact_name(%s)] ", prefixedAction, artifactName));
+      if (recommendedContext) {
+        String stateContext = "property(\"saref:hasState\", ready)";
+        context.append(String.format("affordance([\"%s\"])[artifact_name(%s)] & %s[artifact_name(%s)] " ,
+                prefixedAction, artifactName, stateContext, artifactName));
+      } else {
+        context.append(String.format("affordance([\"%s\"])[artifact_name(%s)] ", prefixedAction, artifactName));
+      }
     }
-
     return context.toString();
   }
 

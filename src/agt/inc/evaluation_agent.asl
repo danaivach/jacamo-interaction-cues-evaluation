@@ -229,6 +229,10 @@
 +?fileName(EvalType, false, false, false, false, FileName) : vocabulary("https://www.w3.org/2019/wot/td#") <-
     .concat(EvalType, "_td_0000", FileName).
 
+@log_filename_bas_td_context_setup
++?fileName(EvalType, false, true, false, false, FileName) : vocabulary("https://www.w3.org/2019/wot/td#") <-
+    .concat(EvalType, "_td_0100", FileName).
+
 +!registerArtifactNamespace(ArtIRI, ArtName) : true <-
     .delete("/#artifact",ArtIRI,BaseIRI);
     .concat(BaseIRI, "/", Namespace);
