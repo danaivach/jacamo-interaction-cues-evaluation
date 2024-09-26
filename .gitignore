@@ -27,3 +27,8 @@ build
 hs_err_pid*
 replay_pid*
 .DS_Store
+
+# IntelliJ
+out/
+
+.idea/
