@@ -313,19 +313,22 @@ public class ScalabilityConfLargeScaleBAS extends Artifact {
                   .add(SHACL.MAX_COUNT, 1)
                   .add(SHACL.HAS_VALUE, "ready");
 
-          Signifier sig = new Signifier.Builder(spec)
-                  .addRecommendedAbility(new Ability
-                          .Builder()
-                          .addSemanticType(this.envURL + "/artifacts/heatingGroupBoard/#Room" + room + "OperatorAbility")
-                          .build())
-                  .addRecommendedContext(new Context.Builder()
-                          .setIRI(contextIRI)
-                          .addModel(contextModelBuilder.build())
-                          .build())
-                  .setIRIAsString(profileURIStr + "/#" + roomComponent + actionLetter)
-                  .build();
+          Signifier.Builder sigBuilder = new Signifier.Builder(spec)
+                  .setIRIAsString(profileURIStr + "/#" + roomComponent + actionLetter);
 
-          builder.exposeSignifier(sig);
+          if (recommendedContext) {
+            sigBuilder.addRecommendedContext(new Context.Builder()
+                    .setIRI(contextIRI)
+                    .addModel(contextModelBuilder.build())
+                    .build());
+          }
+          if (recommendedAbilities) {
+            sigBuilder.addRecommendedAbility(new Ability
+                    .Builder()
+                    .addSemanticType(this.envURL + "/artifacts/heatingGroupBoard/#Room" + room + "OperatorAbility")
+                    .build());
+          }
+          builder.exposeSignifier(sigBuilder.build());
         }
         profileBuilders.add(builder);
         componentIndex++;
@@ -389,8 +392,11 @@ public class ScalabilityConfLargeScaleBAS extends Artifact {
         } else if (recommendedAbilities) {
           context.append(String.format("ability(Abilities%s) & signifier([\"%s\"], Abilities%s, _)[artifact_name(%s)] ",
                   abilitySuffix, prefixedAction, abilitySuffix, artifactName));
+        } else if (recommendedContext) {
+          context.append(String.format("signifier([\"%s\"],_,Context%s)[artifact_name(%s)] & applies(Context%s)",
+                  prefixedAction, abilitySuffix, artifactName, abilitySuffix));
         } else {
-          context.append(String.format("signifier([\"%s\"][artifact_name(%s)] ", prefixedAction, artifactName));
+          context.append(String.format("signifier([\"%s\"])[artifact_name(%s)] ", prefixedAction, artifactName));
         }
       }
     } else if ("td".equals(this.vocabulary)) {
@@ -493,3 +499,4 @@ public class ScalabilityConfLargeScaleBAS extends Artifact {
     return defaultAffordances;
   }
 }
+

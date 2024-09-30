@@ -147,9 +147,19 @@
 +!makeMirroringArtifact(ArtIRI, ArtName, ArtId, WkspId) : sem(SemId) & vocabulary("https://purl.org/hmas/") <-
     makeArtifact(ArtName, "org.hyperagents.jacamo.artifacts.hmas.WebSubResourceArtifact", [ArtIRI, true, true], ArtId)[wid(WkspId)];
     !registerArtifactNamespace(ArtIRI, ArtName);
+    !registerNamespaces(ArtId);
+
+    // Observe artifact state
+    .delete("/#artifact", ArtIRI, BaseIRI);
+    registerArtifactForWebSub(BaseIRI, SemId, "http://172.27.52.55:5000/observe");
+    registerArtifactForWebSub(BaseIRI, ArtId, "http://172.27.52.55:5000/observe");
+    .wait(1000);
+
+    // Retrieve recommendation filter
     ?web_id(WebId);
     addRecommendationContext(ArtIRI, WebId, RecommendationFilter)[artifact_id(SemId)];
-    !registerNamespaces(ArtId);
+
+    // Focus on artifact with recommendation filter
     focus(ArtId, RecommendationFilter);
     .print("Focused on artifact ", ArtName, " with recommendation filter.").
 
@@ -170,68 +180,9 @@
 +!makeMirroringArtifact(ArtIRI, ArtName, ArtId, WkspId) : vocabulary("https://www.w3.org/2019/wot/td#") <-
     makeArtifact(ArtName, "org.hyperagents.jacamo.artifacts.wot.WebSubThingArtifact", [ArtIRI, true, true], ArtId)[wid(WkspId)];
     !registerNamespaces(ArtId);
+    .delete("/#artifact", ArtIRI, BaseIRI);
+    registerArtifactForWebSub(BaseIRI, ArtId, "http://172.27.52.55:5000/observe");
     focus(ArtId).
-
-@log_filename_hmas_baseline_setup
-+?fileName(EvalType, false, false, FileName) : vocabulary("https://purl.org/hmas/") <-
-    .concat(EvalType, "_hmas_00", FileName).
-
-@log_filename_hmas_sem_setup
-+?fileName(EvalType, false, true, FileName) : vocabulary("https://purl.org/hmas/") <-
-    .concat(EvalType, "_hmas_01", FileName).
-
-@log_filename_hmas_srm_setup
-+?fileName(EvalType, true, false, FileName) : vocabulary("https://purl.org/hmas/") <-
-    .concat(EvalType, "_hmas_10", FileName).
-
-@log_filename_td_baseline_setup
-+?fileName(EvalType, false, false, FileName) : vocabulary("https://www.w3.org/2019/wot/td#") <-
-    .concat(EvalType, "_td_00", FileName).
-
-@log_filename_bas_hmas_baseline_setup
-+?fileName(EvalType, false, false, false, false, FileName) : vocabulary("https://purl.org/hmas/") <-
-    .concat(EvalType, "_hmas_0000", FileName).
-
-@log_filename_bas_hmas_baseline_context_setup
-+?fileName(EvalType, false, true, false, false, FileName) : vocabulary("https://purl.org/hmas/") <-
-    .concat(EvalType, "_hmas_0100", FileName).
-
-@log_filename_bas_hmas_baseline_all_setup
-+?fileName(EvalType, true, true, false, false, FileName) : vocabulary("https://purl.org/hmas/") <-
-    .print("Saving to file: _hmas_1100");
-    .concat(EvalType, "_hmas_1100", FileName).
-
-@log_filename_bas_hmas_sem_context_setup
-+?fileName(EvalType, false, true, false, true, FileName) : vocabulary("https://purl.org/hmas/") <-
-    .concat(EvalType, "_hmas_0101", FileName).
-
-@log_filename_bas_hmas_sem_all_setup
-+?fileName(EvalType, true, true, false, true, FileName) : vocabulary("https://purl.org/hmas/") <-
-    .concat(EvalType, "_hmas_1101", FileName).
-
-@log_filename_bas_hmas_srm_context_setup
-+?fileName(EvalType, false, true, true, false, FileName) : vocabulary("https://purl.org/hmas/") <-
-    .concat(EvalType, "_hmas_0110", FileName).
-
-@log_filename_bas_hmas_srm_all_setup
-+?fileName(EvalType, true, true, true, false, FileName) : vocabulary("https://purl.org/hmas/") <-
-    .concat(EvalType, "_hmas_1110", FileName).
-
-@log_filename_bas_hmas_srm_sem_context_setup
-+?fileName(EvalType, false, true, true, true, FileName) : vocabulary("https://purl.org/hmas/") <-
-    .concat(EvalType, "_hmas_0111", FileName).
-
-@log_filename_bas_hmas_srm_sem_all_setup
-+?fileName(EvalType, true, true, true, true, FileName) : vocabulary("https://purl.org/hmas/") <-
-    .concat(EvalType, "_hmas_1111", FileName).
-
-@log_filename_bas_td_baseline_setup
-+?fileName(EvalType, false, false, false, false, FileName) : vocabulary("https://www.w3.org/2019/wot/td#") <-
-    .concat(EvalType, "_td_0000", FileName).
-
-@log_filename_bas_td_context_setup
-+?fileName(EvalType, false, true, false, false, FileName) : vocabulary("https://www.w3.org/2019/wot/td#") <-
-    .concat(EvalType, "_td_0100", FileName).
 
 +!registerArtifactNamespace(ArtIRI, ArtName) : true <-
     .delete("/#artifact",ArtIRI,BaseIRI);
@@ -241,7 +192,8 @@
 @websub_registration_custom_component_hub
 +!registerForWebSub(ArtName, ArtId) : true <-
   ?websub(HubIRI, TopicIRI)[artifact_id(ArtId)];
-  registerArtifactForWebSub(TopicIRI, ArtId, "http://172.27.52.55:5000/observe");
   registerArtifactForWebSub(TopicIRI, ArtId, HubIRI).
+
+{ include("results_handler_agent.asl") }
 
 
